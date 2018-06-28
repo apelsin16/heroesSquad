@@ -1,0 +1,12 @@
+* {
+  font-family: sans-serif;
+}
+
+.App {
+  text-align: center;
+}
+
+.container {
+  display: flex;
+  justify-content: space-around;
+}
