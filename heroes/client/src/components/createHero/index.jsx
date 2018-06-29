@@ -5,15 +5,22 @@ import PropTypes from 'prop-types';
 
 const INITIAL_STATE = {
     name: '',
-    strength: Number(''),
-    intelligence: Number(''),
-    speed: Number(''),
+    strength:'',
+    intelligence: '',
+    speed: '',
 }
 
-const arr = [];
+const makeOptions = num => {
+    const elements = [];
 
-for (let i = 0; i < 10; i+1) { 
-    arr.push(i);
+    for (let i = 0; i <= num; i += 1) { 
+    elements.push(
+        <option key={i} value={i}>
+            {i}
+        </option>
+    );
+}
+return elements;
 }
 
 export default class CreateHero extends Component {
@@ -53,19 +60,19 @@ export default class CreateHero extends Component {
                 <div>
                     <p>strength</p>
                     <select name="strength" value={strength} onChange={this.handleInputChange}>                
-                        {arr.map(item => <option key={item} value={item+1}> {item+1}</option>)}                
+                        {makeOptions(10)}                
                     </select>
                 </div>
                 <div>
                     <p>intelligence</p>
                     <select name="intelligence" value={intelligence} onChange={this.handleInputChange}>                
-                        {arr.map(item => <option key={item} value={item+1}> {item+1}</option>)}                
+                        {makeOptions(10)}                
                     </select>
                 </div>
                 <div>
                     <p>speed</p>
                     <select name="speed" value={speed} onChange={this.handleInputChange}>                
-                        {arr.map(item => <option key={item} value={item+1}> {item+1}</option>)}                
+                        {makeOptions(10)}                
                     </select>
                 </div>
                 

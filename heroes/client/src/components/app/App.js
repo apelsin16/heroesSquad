@@ -7,7 +7,6 @@ import CreateHero from '../createHero';
 import HeroList from '../heroList';
 import HeroesFilter from '../heroesFilter';
 import styles from './styles.css';
-// import startHeroes from '../../db';
 import SquadEditorList from '../squadEditorList';
 import SquadSavedList from '../squadSavedList';
 
