@@ -10,7 +10,7 @@ export default class Hero extends Component {
         onInfoHero: PropTypes.func.isRequired,
         onAddHeroToSquad: PropTypes.func.isRequired,
     }
-    state = {};
+   
     
     handleDelete = () => this.props.onDeleteHero(this.props.id);
 

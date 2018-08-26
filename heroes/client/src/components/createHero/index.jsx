@@ -40,9 +40,17 @@ export default class CreateHero extends Component {
 
     handleSubmit = e => {
         e.preventDefault();
-        if (this.state.name === '') { return; }      
-        this.props.onAddHero(this.state.name, Number(this.state.strength) , Number(this.state.intelligence) , Number(this.state.speed) );
-        this.setState({ ...INITIAL_STATE});
+        if (this.state.name === '') { return; }
+
+        const { name, strength, intelligence, speed } = this.state;    
+
+        this.props.onAddHero({
+            name, 
+            strength: Number(strength), 
+            intelligence: Number(intelligence), 
+            speed: Number(speed)
+        });
+        this.setState({ ...INITIAL_STATE });
     }
 
     render() {

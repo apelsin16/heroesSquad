@@ -9,25 +9,28 @@ import HeroesFilter from '../heroesFilter';
 import styles from './styles.css';
 import SquadEditorList from '../squadEditorList';
 import SquadSavedList from '../squadSavedList';
+import SquadStats from '../squadStats/index';
 
 
-const getStrength = (heroes, squadIDs, strengthArr ) => heroes.filter( hero => squadIDs.includes(hero.id)).filter(item => strengthArr.push(item.strength)); 
-const getIntelligence = (heroes, squadIDs, intelligenceArr ) => heroes.filter( hero => squadIDs.includes(hero.id)).filter(item => intelligenceArr.push(item.intelligence));
-const getSpeed = (heroes, squadIDs, speedArr ) => heroes.filter( hero => squadIDs.includes(hero.id)).filter(item => speedArr.push(item.speed));
+const getVisibleHeroes = (heroes, filter, squadIDs) => 
+  heroes.filter(
+    hero =>
+    hero.name.toLowerCase().includes(filter.toLowerCase()) && !squadIDs.includes(hero.id)
+  );
 
-const reducer = (accumulator, currentValue) => accumulator + currentValue;
-const getVisibleHeroes = ( heroes, filter, squadIDs ) => {
 
-  const filtered = heroes.filter( hero => 
-    hero.name.includes(filter));
-    
-  return  filtered.filter( hero => squadIDs.indexOf(hero.id) === -1 )
- 
-};
+const getHeroForSquads = (heroes, squadIDs) =>
+  heroes.filter(hero => squadIDs.includes(hero.id));
 
-const getHeroForSquads = ( heroes, squadIDs ) => 
-  
-  heroes.filter( hero => squadIDs.includes(hero.id));
+const getSquadStats = heroes =>
+  heroes.reduce((acc, hero) => {
+    acc.str += hero.strength;
+    acc.int += hero.intelligence;
+    acc.spd += hero.speed;
+    return acc
+  }, { str: 0, int: 0, spd: 0 });
+
+  const getHeroesById = ( heroes, id ) =>  heroes.find(hero => hero.id === id)
 
 export default class App extends Component {
   state = {
@@ -39,98 +42,101 @@ export default class App extends Component {
 
   componentDidMount() {
     axios.get('/api/heroes')
-    .then(({data, status}) => {
-      if (status === 200) {
-        this.setState({
-          heroes: data,
-        })
-      }
-    });
+      .then(({
+        data,
+        status
+      }) => {
+        if (status === 200) {
+          this.setState({
+            heroes: data,
+          })
+        }
+      });
     axios.get('/api/squads')
-    .then(({data, status}) => {
-      if (status === 200) {
-        this.setState({
-          squad: data,
-        })
-      }
-    })
+      .then(({
+        data,
+        status
+      }) => {
+        if (status === 200) {
+          this.setState({
+            squad: data,
+          })
+        }
+      })
   }
 
   saveSquad = () => {
-    const strengthArr = [];
-    const intelligenceArr = [];
-    const speedArr = []; 
+    const { heroes, squadIDs } = this.state;
       
-    getStrength(this.state.heroes, this.state.squadIDs, strengthArr);
-    getIntelligence(this.state.heroes, this.state.squadIDs, intelligenceArr);
-    getSpeed(this.state.heroes, this.state.squadIDs, speedArr);
+    if (this.state.squadIDs.length === 0) return;
 
-    if (this.state.squadIDs.length === 0){
-      return;
-    } 
+    const squadHeroes = getHeroForSquads(heroes, squadIDs);
+    const squadStats = getSquadStats(squadHeroes);
 
-    const h = this.state.heroes.filter( hero => this.state.squadIDs.includes(hero.id));
-    const str = strengthArr.reduce(reducer);
-    const int = intelligenceArr.reduce(reducer);
-    const spd = speedArr.reduce(reducer);
-    const squad = { heroes: h, stats:{str, int, spd} };
+    const squad = {
+      heroes: squadHeroes,
+      stats: squadStats
+    };
 
 
     axios.post('/api/squads', squad)
-    .then(({data, status}) => {
-      if (status ===201) {
-        this.setState(prevState => ({      
-          squad: [  ...prevState.squad, data]
-    }));  
-      }
-    })     
-    this.setState({
-      squadIDs: []
-    })
-      
-   
-  };
-  
+      .then(({
+        data,
+        status
+      }) => {
+        if (status === 201) {
+          this.setState(prevState => ({
+            squad: [...prevState.squad, data]
+          }), this.resetSquad);
+        }
+      })
+    };
+
   resetSquad = () => {
 
     this.setState({
       squadIDs: []
     })
   }
-     
 
-  addHero = ( name, strength, intelligence, speed) => {
-    const hero = { name, strength, intelligence, speed};
+
+  addHero = hero => {
+   
     axios.post('/api/heroes', hero)
-    .then(({data, status}) => {
-      if (status ===201) {
-        this.setState(prevState => ({      
-     heroes: [  ...prevState.heroes, data]
-    }));  
-      }
-    })
+      .then(({
+        data,
+        status
+      }) => {
+        if (status === 201) {
+          this.setState(prevState => ({
+            heroes: [...prevState.heroes, data]
+          }));
+        }
+      })
 
-    
+
   };
 
 
   addHeroToSquad = id => {
     this.setState(prevState => ({
-      squadIDs: [id, ...prevState.squadIDs ],
-     
+      squadIDs: [id, ...prevState.squadIDs],
+
     }))
   }
 
   deleteSavedSquad = id => {
 
     axios.delete(`api/squads/${id}`)
-    .then(({status}) => {
-      if(status === 200) {
-        this.setState(prevState => ({
-          squad: prevState.squad.filter(item => item.id !== id)
-    }));
-      }
-    });    
+      .then(({
+        status
+      }) => {
+        if (status === 200) {
+          this.setState(prevState => ({
+            squad: prevState.squad.filter(item => item.id !== id)
+          }));
+        }
+      });
   };
 
   deleteHeroFromSquad = id => {
@@ -138,67 +144,80 @@ export default class App extends Component {
       squadIDs: prevState.squadIDs.filter(el => el !== id)
     }))
   }
- 
-  
-  deleteHero =  id  => {
+
+
+  deleteHero = id => {
 
     axios.delete(`api/heroes/${id}`)
-    .then(({status}) => {
-      if(status === 200) {
-        this.setState(prevState => ({
-      heroes: prevState.heroes.filter(hero => hero.id !== id)
-    }));
-      }
-    });    
+      .then(({
+        status
+      }) => {
+        if (status === 200) {
+          this.setState(prevState => ({
+            heroes: prevState.heroes.filter(hero => hero.id !== id)
+          }));
+        }
+      });
   };
-  
-  infoHero = id => {
-    const infoOfHero =  this.state.heroes.filter(hero => hero.id === id);
-    console.log("[Hero Info]"); 
-    console.log("Name: ", infoOfHero[0].name);
-    console.log("Strength: ", infoOfHero[0].strength);
-    console.log("Intelligence: ", infoOfHero[0].intelligence);
-    console.log("Speed: ", infoOfHero[0].speed);
+
+  infoHero = id => { 
+    const { name, strength, intelligence, speed } = getHeroesById( this.state.heroes, id);
+    console.log("[Hero Info]");
+    console.log("Name: ", name);
+    console.log("Strength: ", strength);
+    console.log("Intelligence: ", intelligence);
+    console.log("Speed: ", speed);
   }
 
-  
+
 
   handleFilterChange = str => {
-    this.setState({ filter: str });
+    this.setState({
+      filter: str
+    });
   };
 
 
   render() {
-    
+
     const { heroes, filter, squadIDs, squad } = this.state;
-    const visibleHeroes =  getVisibleHeroes(heroes, filter, squadIDs );
-    const heroForSquad = getHeroForSquads(heroes, squadIDs);  
-    
+    const visibleHeroes = getVisibleHeroes(heroes, filter, squadIDs);
+    const heroForSquad = getHeroForSquads(heroes, squadIDs);
+    const squadStats = getSquadStats(heroForSquad);  
     return (
-      <div className={styles.App}>
-        <MainTitle text="Super Squad" />
-        <div className={styles.container}>        
-          <Panel>
-            <Title text="Create Hero"/>
-            <CreateHero onAddHero={this.addHero} heroes={heroes}/>
-          </Panel>
-          <Panel>        
-            <Title text="Heroes"/>
-            <HeroesFilter onHandleFilterChange={this.handleFilterChange} filter={filter}/>
-            <HeroList heroes={visibleHeroes} onDeleteHero={this.deleteHero} onInfoHero={this.infoHero} onAddHeroToSquad={this.addHeroToSquad}/>
+       <div className = { styles.App } >
+        <MainTitle text = "Super Squad" / >
+        <div className = { styles.container } >
+          <Panel >
+            <Title text = "Create Hero" / >
+            <CreateHero onAddHero = { this.addHero } heroes = { heroes }/>
           </Panel>
           <Panel>
-            <Title text="Squad Editor"/>  
-            <SquadEditorList heroForSquad={heroForSquad} onDeleteHeroFromSquad={this.deleteHeroFromSquad} onSaveSquad={this.saveSquad} onResetSquad={this.resetSquad}/>      
-          </Panel>
-          <Panel>            
-            <Title text="Saved Squads"/>    
-            <SquadSavedList squad={squad} onDeleteSavedSquad={this.deleteSavedSquad} />   
-          </Panel>
+            <Title text = "Heroes" / >
+            <HeroesFilter onHandleFilterChange = { this.handleFilterChange } filter = { filter }/> 
+            <HeroList 
+              heroes = { visibleHeroes } 
+              onDeleteHero = { this.deleteHero }
+              onInfoHero = { this.infoHero }
+              onAddHeroToSquad = { this.addHeroToSquad }/>
+            </Panel>
+            <Panel>
+              <Title text = "Squad Editor" / >
+              <SquadStats onSquadStats={squadStats} />
+              <SquadEditorList 
+                heroForSquad = { heroForSquad}
+                onDeleteHeroFromSquad = { this.deleteHeroFromSquad }
+                onSaveSquad = { this.saveSquad }
+                onResetSquad = { this.resetSquad }/>
+            </Panel>
+            <Panel>
+              <Title text = "Saved Squads" / >
+              <SquadSavedList 
+                squad = { squad }
+                onDeleteSavedSquad = { this.deleteSavedSquad }/>
+            </Panel>
+          </div>
         </div>
-      </div>
     );
   }
 };
-
- 

@@ -69,6 +69,13 @@
       "strength": 10,
       "intelligence": 9,
       "speed": 7
+    },
+    {
+      "name": "alexander",
+      "strength": 10,
+      "intelligence": 10,
+      "speed": 9,
+      "id": 10
     }
   ],
   "squads": [
@@ -88,6 +95,37 @@
         "spd": 6
       },
       "id": 1
+    },
+    {
+      "heroes": [
+        {
+          "id": 0,
+          "name": "Superman",
+          "strength": 10,
+          "intelligence": 7,
+          "speed": 9
+        },
+        {
+          "id": 1,
+          "name": "Batman",
+          "strength": 7,
+          "intelligence": 10,
+          "speed": 6
+        },
+        {
+          "id": 2,
+          "name": "Wonderwoman",
+          "strength": 5,
+          "intelligence": 9,
+          "speed": 7
+        }
+      ],
+      "stats": {
+        "str": 22,
+        "int": 26,
+        "spd": 22
+      },
+      "id": 2
     }
   ]
 }
